@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const availablePolicySchema = new mongoose.Schema({
   policy_number: {
@@ -12,7 +12,7 @@ const availablePolicySchema = new mongoose.Schema({
     required: true,
   },
   deductible: {
-    type: Number,
+    type: String,
     required: true,
   },
   image: {
@@ -20,7 +20,7 @@ const availablePolicySchema = new mongoose.Schema({
     required: true,
   },
   premium: {
-    type: Number,
+    type: String,
     required: true,
   },
   information: {
@@ -33,6 +33,9 @@ const availablePolicySchema = new mongoose.Schema({
   },
 });
 
-const AvailablePolicy = mongoose.model('AvailablePolicy', availablePolicySchema);
+const AvailablePolicy = mongoose.model(
+  "AvailablePolicy",
+  availablePolicySchema
+);
 
 module.exports = AvailablePolicy;
