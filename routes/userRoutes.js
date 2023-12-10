@@ -20,4 +20,8 @@ router
   .route("/claim-policy/:policyId")
   .post(authenticateUser, userController.claimPolicy);
 
+router
+  .route("/bought-policies")
+  .get(authenticateUser, userController.getBoughtPoliciesByUser);
+
 module.exports = router;

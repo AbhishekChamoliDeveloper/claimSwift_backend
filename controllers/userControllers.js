@@ -41,7 +41,7 @@ exports.signup = async (req, res) => {
       },
     });
 
-    const token = jwt.sign({ newUser }, process.env.SECRET_JWT_KEY);
+    const token = jwt.sign({ user: newUser }, process.env.SECRET_JWT_KEY);
 
     res.status(201).json({
       message: "User signed up successfully",
@@ -84,9 +84,18 @@ exports.login = async (req, res) => {
 exports.settings = async (req, res) => {
   try {
     const authenticatedUser = req.user;
-    const { profile_picture, dateOfBirth, mobileNumber, address, gender } =
-      req.body;
+    const {
+      firstName,
+      lastName,
+      profile_picture,
+      dateOfBirth,
+      mobileNumber,
+      address,
+      gender,
+    } = req.body;
 
+    authenticatedUser.firstName = firstName;
+    authenticatedUser.lastName = lastName;
     authenticatedUser.profile_picture = profile_picture;
     authenticatedUser.dateOfBirth = dateOfBirth;
     authenticatedUser.mobileNumber = mobileNumber;
@@ -262,4 +271,29 @@ exports.getUserInformation = async (req, res) => {
   }
 };
 
+exports.getBoughtPoliciesByUser = async (req, res) => {
+  const userId = req.user._id;
 
+  try {
+    const boughtPolicies = await BoughtPolicy.find({ userId: userId })
+      .populate("policyId")
+      .lean()
+      .exec();
+
+    if (!boughtPolicies) {
+      return res
+        .status(404)
+        .json({ message: "No bought policies found for the user" });
+    }
+
+    // Exclude unwanted fields
+    const simplifiedPolicies = boughtPolicies.map((policy) => ({
+      policyId: policy.policyId,
+    }));
+
+    res.status(200).json({ boughtPolicies: simplifiedPolicies });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
