@@ -28,4 +28,10 @@ router
   .route("/claims/:status")
   .get(authenticateAdmin, adminControllers.getRejectedOrApprovedPolicy);
 
+router
+  .route("/claimed-policies")
+  .get(authenticateAdmin, adminControllers.getAllClaimedPolicies);
+
+router.route("/get-role").get(adminControllers.getRole);
+
 module.exports = router;

@@ -59,6 +59,12 @@ const claimPolicySchema = new Schema({
   rejectedReason: {
     type: String,
   },
+  approvedDate: {
+    type: Date,
+  },
+  rejectedDate: {
+    type: Date,
+  },
   claimStatus: {
     type: String,
     enum: ["approved", "rejected", "pending"],

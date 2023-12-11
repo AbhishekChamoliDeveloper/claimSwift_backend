@@ -47,6 +47,7 @@ exports.approveClaim = async (req, res) => {
     const userId = claim.userId;
 
     claim.claimStatus = "approved";
+    claim.approvedDate = new Date();
 
     await claim.save();
 
@@ -87,6 +88,7 @@ exports.rejectClaim = async (req, res) => {
 
     claim.claimStatus = "rejected";
     claim.rejectedReason = rejectReason;
+    claim.rejectedDate = new Date();
 
     await claim.save();
 
@@ -116,7 +118,10 @@ exports.getClaim = async (req, res) => {
   try {
     const { claimId } = req.params;
 
-    const claim = await ClaimPolicy.findById(claimId);
+    const claim = await ClaimPolicy.findById(claimId).populate({
+      path: "policyId",
+      model: "AvailablePolicy",
+    });
 
     if (!claim) {
       return res.status(404).json({ error: "Claim not found" });
@@ -160,7 +165,12 @@ exports.getRejectedOrApprovedPolicy = async (req, res) => {
     const { status } = req.params;
 
     if (status === "rejected" || status === "approved") {
-      const policies = await ClaimPolicy.find({ claimStatus: status });
+      const policies = await ClaimPolicy.find({ claimStatus: status }).populate(
+        {
+          path: "policyId",
+          model: "AvailablePolicy",
+        }
+      );
 
       res
         .status(200)
@@ -171,5 +181,40 @@ exports.getRejectedOrApprovedPolicy = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAllClaimedPolicies = async (req, res) => {
+  try {
+    const policies = await ClaimPolicy.find();
+
+    res.status(200).json({ policies });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getRole = async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ error: "Unauthorized - Bearer token not provided" });
+  }
+
+  try {
+    const decodedToken = jwt.verify(token, process.env.SECRET_JWT_KEY);
+
+    const admin = await Admin.findById(decodedToken.admin?._id);
+    const user = await User.findById(decodedToken.user?._id);
+
+    if (admin) return res.status(200).json({ role: "admin" });
+    if (user) return res.status(200).json({ role: "user" });
+
+    return res.status(200).json({ role: "not found" });
+  } catch (error) {
+    return res.status(401).json({ error: "Unauthorized - Invalid token" });
   }
 };
