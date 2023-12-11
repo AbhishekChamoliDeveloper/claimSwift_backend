@@ -257,7 +257,15 @@ exports.getUserInformation = async (req, res) => {
 
   try {
     const user = await User.findById(userId)
-      .populate("boughtPolicies notifications claimedPolicies")
+      .populate("boughtPolicies") // Populate the boughtPolicies array
+      .populate("notifications")
+      .populate({
+        path: "claimedPolicies",
+        populate: {
+          path: "policyId",
+          model: "AvailablePolicy", // Reference to the BoughtPolicy model
+        },
+      })
       .exec();
 
     if (!user) {
@@ -294,6 +302,32 @@ exports.getBoughtPoliciesByUser = async (req, res) => {
     res.status(200).json({ boughtPolicies: simplifiedPolicies });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.markAllNotificationsAsRead = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Step 1: Find the user by ID and get the notification IDs
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const notificationIds = user.notifications;
+
+    // Step 2: Mark notifications as read
+    await Notification.updateMany(
+      { _id: { $in: notificationIds }, isRead: false },
+      { $set: { isRead: true } }
+    );
+
+    res.status(200).json({ message: "All notifications marked as read" });
+  } catch (error) {
+    console.error("Error marking all notifications as read:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };

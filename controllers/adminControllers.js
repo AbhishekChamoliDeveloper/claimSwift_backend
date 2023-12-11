@@ -131,7 +131,9 @@ exports.getClaim = async (req, res) => {
 
 exports.getAllPendingClaims = async (req, res) => {
   try {
-    const pendingClaims = await ClaimPolicy.find({ claimStatus: "pending" });
+    const pendingClaims = await ClaimPolicy.find({
+      claimStatus: "pending",
+    }).populate({ path: "policyId", model: "AvailablePolicy" });
 
     res.status(200).json({ pendingClaims });
   } catch (error) {

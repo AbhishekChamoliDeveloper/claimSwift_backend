@@ -24,4 +24,10 @@ router
   .route("/bought-policies")
   .get(authenticateUser, userController.getBoughtPoliciesByUser);
 
+router.post(
+  "/mark-all-notifications-as-read",
+  authenticateUser,
+  userController.markAllNotificationsAsRead
+);
+
 module.exports = router;
